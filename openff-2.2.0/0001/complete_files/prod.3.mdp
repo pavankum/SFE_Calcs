@@ -1,0 +1,105 @@
+;====================================================
+; NPT equilibration
+;====================================================
+
+;----------------------------------------------------
+; RUN CONTROL
+;----------------------------------------------------
+integrator   = sd            ; stochastic leap-frog integrator
+tinit        = 0
+nsteps       = 15000000          ; 1 fs * 15,000,000 steps = 15,000,000 fs = 15,000 ps = 15 ns
+dt           = 0.001         ; 1 fs
+comm-mode    = Linear        ; remove center of mass translation
+nstcomm      = 100           ; frequency for center of mass motion removal
+
+;----------------------------------------------------
+; OUTPUT CONTROL
+;----------------------------------------------------
+nstxout                = 0          ; don't save coordinates to .trr
+nstvout                = 0          ; don't save velocities to .trr
+nstfout                = 0          ; don't save forces to .trr
+nstxout-compressed     = 1000       ; xtc compressed trajectory output every 5000 steps
+compressed-x-precision = 1000       ; precision with which to write to the compressed trajectory file
+nstlog                 = 5000       ; update log file every 10 ps
+nstenergy              = 500       ; save energies every 10 ps
+nstcalcenergy          = 100        ; calculate energies every 100 steps
+
+;----------------------------------------------------
+; BONDS
+;----------------------------------------------------
+constraint_algorithm   = lincs      ; holonomic constraints
+constraints            = h-bonds  ; hydrogens only are constrained
+lincs_iter             = 1          ; accuracy of LINCS (1 is default)
+lincs_order            = 12          ; also related to accuracy (4 is default)
+lincs-warnangle        = 30         ; maximum angle that a bond can rotate before LINCS will complain (30 is default)
+continuation           = yes         ; formerly known as 'unconstrained-start' - useful for exact continuations and reruns
+
+;----------------------------------------------------
+; NEIGHBOR SEARCHING
+;----------------------------------------------------
+cutoff-scheme   = verlet
+nstlist         = 20     ; 20 fs (default is 10)
+rlist           = 1.2 ; Cutoff for the short-range neighbour list; overriden by verlet-buffer-tolerance, set here to avoid notes
+pbc             = xyz    ; 3D PBC
+
+;----------------------------------------------------
+; ELECTROSTATICS
+;----------------------------------------------------
+coulombtype      = PME      ; Particle Mesh Ewald for long-range electrostatics
+rcoulomb         = 1.2      ; short-range electrostatic cutoff (in nm)
+rcoulomb-switch  = 0
+ewald_geometry   = 3d       ; Ewald sum is performed in all three dimensions
+pme-order        = 4        ; interpolation order for PME (default is 4)
+fourierspacing   = 0.10     ; grid spacing for FFT
+ewald-rtol       = 1e-6     ; relative strength of the Ewald-shifted direct potential at rcoulomb
+epsilon_surface  = 0
+
+;----------------------------------------------------
+; VDW
+;----------------------------------------------------
+vdwtype          = Cut-off    ; Method for doing Van der Waals
+rvdw             = 1.0
+rvdw-switch      = 0.9
+vdw-modifier     = Potential-switch
+DispCorr         = EnerPres   ; Apply long range dispersion corrections for Energy and Pressure
+ewald-rtol-lj    = 1e-3
+
+;----------------------------------------------------
+; TEMPERATURE & PRESSURE COUPL
+;----------------------------------------------------
+tcoupl           = no        ; SD (stochastic dynamics) algorithm takes care of temp. control
+tc_grps          = system
+tau_t            = 2.0       ; units of ps
+ref_t            = 303.15    ; units of Kelvin
+pcoupl           = Parrinello-Rahman
+pcoupltype       = isotropic
+tau_p            = 10.0       ; units of ps
+compressibility  = 4.5e-05   ; units of 1/bar
+ref_p            = 1.01325       ; 1 bar
+
+
+;----------------------------------------------------
+; VELOCITY GENERATION
+;----------------------------------------------------
+gen_vel      = no      ; Velocity generation is on (if gen_vel is 'yes', continuation should be 'no')
+
+;----------------------------------------------------
+; FREE ENERGY CALCULATIONS
+;----------------------------------------------------
+free-energy              = yes
+init_lambda_state        = 3
+couple-moltype           = MOL0     ; name of moleculetype to decouple
+couple-lambda0           = vdw-q    ; all interactions are on at lambda=0
+couple-lambda1           = none     ; the Van der Waals interactions are turned off and the charges are zero at lambda=1; soft-core interactions will be required to avoid singularities.
+couple-intramol          = yes
+separate-dhdl-file       = yes
+sc-alpha                 = 0.5       ; softcore parameters. For sc-function=beutler the soft-core alpha parameter.
+sc-power                 = 1         ; the power for lambda in the soft-core function, only the values 1 and 2 are supported. Used only with sc-function=beutler.
+sc-sigma                 = 0.3       ; [nm] for sc-function=beutler the soft-core sigma for particles which have a C6 or C12 parameter equal to zero or a sigma smaller than sc-sigma.
+; [array] Zero, one or more lambda values for which Delta H values will be determined and written to dhdl.xvg every nstdhdl steps.
+; Only the electrostatic interactions are controlled with this component of the lambda vector
+coul-lambdas             = 0.0 0.25 0.5 0.75 1.0 1.00 1.0 1.0 1.0 1.0 1.0 1.0 1.00 1.0 1.00 1.0 1.00 1.0 1.00 1.0
+; Only the van der Waals interactions are controlled with this component of the lambda vector.
+vdw-lambdas              = 0.0 0.00 0.0 0.00 0.0 0.05 0.1 0.2 0.3 0.4 0.5 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0
+nstdhdl                  = 100       ;  the frequency for writing dH/dlambda and possibly Delta H to dhdl.xvg
+calc-lambda-neighbors    = -1        ; # of lambda values for which Delta H values will be calculated and written out, -1 means all lambda points will be written out.

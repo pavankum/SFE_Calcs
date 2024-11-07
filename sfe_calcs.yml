@@ -1,0 +1,14 @@
+name: sfe_calcs
+channels:
+  - conda-forge
+  - openeye
+dependencies:
+  - python
+  - openff-toolkit
+  - alchemlyb
+  - mdtraj
+  - pymbar
+  - openeye-toolkits
+  - openff-interchange
+  - openff-forcefields
+  - jupyter
