@@ -12,3 +12,5 @@ dependencies:
   - openff-interchange
   - openff-forcefields
   - jupyter
+  - pymbar==4.0.3
+  - alchemlyb==2.3.1
